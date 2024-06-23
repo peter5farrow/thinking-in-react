@@ -8,34 +8,39 @@ import InvoiceTableHeader from "./InvoiceTableHeader";
 import InvoiceTableRow from "./InvoiceTableRow";
 import { useState } from "react";
 import generateId from "../utils/idGenerator.js";
+import axios from "axios";
 
 function InvoiceTable({ initialInvoiceList }) {
   const [invoiceList, setInvoiceList] = useState(initialInvoiceList);
 
-  const addInvoiceRow = () => {
-    const newInvoiceList = [...invoiceList];
-    newInvoiceList.push({
-      id: generateId(),
+  const addInvoiceRow = async () => {
+    const { data } = await axios.post("/api/invoice", {
       description: "Description",
-      rate: "",
-      hours: "",
-      isEditing: true,
     });
-    setInvoiceList(newInvoiceList);
+
+    const newInvoice = { ...data, isEditing: true };
+    setInvoiceList([...invoiceList, newInvoice]);
   };
 
-  const deleteInvoiceRow = (id) => {
-    const newInvoiceList = [...invoiceList];
-    const index = newInvoiceList.findIndex((invoice) => invoice.id === id);
-    newInvoiceList.splice(index, 1);
-    setInvoiceList(newInvoiceList);
+  const deleteInvoiceRow = async (id) => {
+    const { data } = await axios.delete(`/api/invoice/${id}/delete`);
+
+    if (!data.error) {
+      const newInvoiceList = [...invoiceList];
+
+      const index = newInvoiceList.findIndex(
+        (invoice) => invoice.id === data.id
+      );
+      newInvoiceList.splice(index, 1);
+      setInvoiceList(newInvoiceList);
+    }
   };
 
   const rows = invoiceList.map(
     ({ id, description, rate, hours, isEditing }) => (
       <InvoiceTableRow
         key={id}
-        initialInvoiceData={{ description, rate, hours }}
+        initialInvoiceData={{ id, description, rate, hours }}
         initialIsEditing={isEditing}
         onDeleteRow={() => deleteInvoiceRow(id)}
       />

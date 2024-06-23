@@ -4,6 +4,7 @@ import EditableDescriptionCell from "./EditableDescriptionCell";
 import EditableHoursCell from "./EditableHoursCell";
 import EditableRateCell from "./EditableRateCell";
 import EditableRowModeButtons from "./EditableRowModeButtons";
+import axios from "axios";
 
 function InvoiceTableRow({
   initialInvoiceData,
@@ -19,7 +20,22 @@ function InvoiceTableRow({
   const [hours, setHours] = useState(initialInvoiceData.hours);
 
   const setEditMode = () => setIsEditing(true);
-  const setNormalMode = () => setIsEditing(false);
+
+  const setNormalMode = async () => {
+    const { data } = await axios.put(`/api/invoice/${initialInvoiceData.id}`, {
+      description,
+      rate,
+      hours,
+    });
+
+    if (!data.error) {
+      setDescription(data.description);
+      setRate(data.rate);
+      setHours(data.hours);
+    }
+
+    setIsEditing(false);
+  };
 
   return (
     <tr>
